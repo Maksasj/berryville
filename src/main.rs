@@ -11,7 +11,7 @@ use bevy::{
             Extent3d, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages,
         },
         view::RenderLayers,
-    }, window::PresentMode, sprite::MaterialMesh2dBundle,
+    }, window::PresentMode, sprite::{MaterialMesh2dBundle, Material2d, Mesh2dHandle},
 };
 
 fn main() {
@@ -40,7 +40,62 @@ fn main() {
         }))
         .insert_resource(Msaa::Off)
         .add_startup_system(setup)
+        .add_system(growth)
         .run();
+}
+
+#[derive(Component)]
+pub struct Seed {
+    pub timer: f32
+}
+
+impl Seed {
+    pub fn new() -> Self {
+        Seed { 
+            timer: 0.0 
+        }
+    }
+}
+
+#[derive(Bundle)]
+pub struct SeedBundle {
+    mesh: MaterialMesh2dBundle<ColorMaterial>,
+    seed: Seed
+}
+
+impl SeedBundle {
+    pub fn new(mut meshes: ResMut<Assets<Mesh>>, mut materials: ResMut<Assets<ColorMaterial>>) -> Self {
+        SeedBundle { 
+            mesh: MaterialMesh2dBundle {
+                mesh: meshes.add(shape::Circle::new(10.).into()).into(),
+                material: materials.add(ColorMaterial::from(Color::PURPLE)),
+                transform: Transform::from_translation(Vec3::new(0., 0., 0.)),
+                ..default()
+            },
+            seed: Seed::new()
+        }
+    }
+}
+
+#[derive(Component)]
+pub struct Branch {
+    pub timer: f32
+}
+
+impl Branch {
+    pub fn new() -> Self {
+        Branch { 
+            timer: 0.0 
+        }
+    }
+}
+
+pub fn growth(mut commands: Commands, mut targets: Query<(&mut Seed, &mut Transform)>) {
+    for (mut seed, mut transform) in targets.iter_mut() {
+        seed.timer += 0.001;
+
+        transform.scale = Vec3::splat(seed.timer);
+    }
 }
 
 fn setup(
@@ -50,8 +105,8 @@ fn setup(
     mut images: ResMut<Assets<Image>>,
 ) {
     let size = Extent3d {
-        width: 80,
-        height: 60,
+        width: 160,
+        height: 120,
         ..default()
     };
 
@@ -76,19 +131,10 @@ fn setup(
     image.resize(size);
 
     let image_handle = images.add(image);
-
-    // Circle
-    
     let first_pass_layer = RenderLayers::layer(1);
 
-    commands.spawn((MaterialMesh2dBundle {
-            mesh: meshes.add(shape::Circle::new(10.).into()).into(),
-            material: materials.add(ColorMaterial::from(Color::PURPLE)),
-            transform: Transform::from_translation(Vec3::new(0., 0., 0.)),
-            ..default()
-        },
-        first_pass_layer
-    ));
+    // Circle
+    commands.spawn((SeedBundle::new(meshes, materials), first_pass_layer));
 
     commands.spawn((
         Camera2dBundle {
@@ -109,7 +155,7 @@ fn setup(
     commands.spawn(SpriteBundle {
         texture: image_handle.clone(),
         transform: Transform {
-            scale: Vec3::splat(10.0),
+            scale: Vec3::splat(5.0),
             ..default()
         },
         ..default()
