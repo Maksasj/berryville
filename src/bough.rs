@@ -99,7 +99,7 @@ pub fn bough_system(mut commands: Commands, mut targets: Query<(&mut Growth, &mu
         if !bough.done_with_sticks {
             let stick_count = rng.gen_range(1..5); // [x0, x1)
 
-            for s in 0..stick_count {
+            for _ in 0..stick_count {
                 if active_stick_count > 100 {
                     continue;
                 }
