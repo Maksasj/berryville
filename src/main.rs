@@ -25,6 +25,15 @@ use bough::*;
 mod apple;
 use apple::*;
 
+mod grape;
+use grape::*;
+
+mod banana;
+use banana::*;
+
+mod cocos;
+use cocos::*;
+
 mod stick;
 use stick::*;
 
@@ -67,6 +76,9 @@ fn main() {
             bough_system, 
             stick_system, 
             apple_system,
+            grape_system,
+            banana_system,
+            cocos_system,
             
             boundery_growth_limit_system, 
             camera_system).chain())

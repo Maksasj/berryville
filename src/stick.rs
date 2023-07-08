@@ -7,7 +7,7 @@ use rand::*;
 use crate::{
     growth::*, 
     apple::*,
-    rotation::*, 
+    rotation::*, grape::GrapeBundle, banana::BananaBundle, cocos::CocosBundle, 
 };
 
 #[derive(Component)]
@@ -77,15 +77,23 @@ pub fn stick_system(
         
         growth.done = true;
 
-        {
-            let mut new_transform: Transform = transform.clone();
+        let mut rng = rand::thread_rng();
+ 
+        let random_number = rng.gen_range(1..5); // [x0, x1) 1 2 3 4
+
+        let mut new_transform: Transform = transform.clone();
             
-            new_transform.translation.x -= 10.0 * rotation.angle.sin();
-            new_transform.translation.y += 10.0 * rotation.angle.cos();
+        new_transform.translation.x -= 10.0 * rotation.angle.sin();
+        new_transform.translation.y += 10.0 * rotation.angle.cos();
 
-            new_transform.scale = Vec3::splat(0.0);
+        new_transform.scale = Vec3::splat(0.0);
 
-            commands.spawn(AppleBundle::new(&asset_server, new_transform, 0.0));
+        match random_number {
+            1 => { commands.spawn(AppleBundle::new(&asset_server, new_transform, 0.0)); },
+            2 => { commands.spawn(GrapeBundle::new(&asset_server, new_transform, 0.0)); },
+            3 => { commands.spawn(BananaBundle::new(&asset_server, new_transform, 0.0)); },
+            4 => { commands.spawn(CocosBundle::new(&asset_server, new_transform, 0.0)); },
+            _ => {}
         }
     }   
 }

@@ -9,38 +9,38 @@ use crate::{
 };
 
 #[derive(Component)]
-pub struct Apple {
+pub struct Grape {
 
 }
 
-impl Apple {
+impl Grape {
     pub fn new() -> Self {
-        Apple { }
+        Grape { }
     }
 }
 
 #[derive(Bundle)]
-pub struct AppleBundle {
+pub struct GrapeBundle {
     sprite: SpriteBundle,
 
     growth: Growth,
-    apple: Apple,
+    grape: Grape,
 
     rotation: Rotation,
 
     rendering_layer: RenderLayers,
 }
 
-impl AppleBundle {
+impl GrapeBundle {
     pub fn new(asset_server: &Res<AssetServer>, transform: Transform, angle: f32) -> Self {
-        AppleBundle { 
+        GrapeBundle { 
             sprite: SpriteBundle {
-                texture: asset_server.load("apple.png"),
+                texture: asset_server.load("grape.png"),
                 transform: transform,
                 ..default()
             },
             growth: Growth::new(1.0, 0.5),
-            apple: Apple::new(),
+            grape: Grape::new(),
 
             rotation: Rotation::new(angle),
 
@@ -49,7 +49,7 @@ impl AppleBundle {
     }
 }
 
-pub fn apple_system(mut targets: Query<(&mut Growth, &mut Transform, &Rotation), With<Apple>> ) {
+pub fn grape_system( mut targets: Query<(&mut Growth, &mut Transform, &Rotation), With<Grape>> ) {
     for (mut growth, mut transform, _) in targets.iter_mut() {
         // Still growing
         if growth.timer < growth.max_time {
