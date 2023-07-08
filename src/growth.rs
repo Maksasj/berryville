@@ -1,4 +1,6 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, transform};
+
+use crate::game_camera::*;
 
 #[derive(Component)]
 pub struct Growth {
@@ -34,5 +36,25 @@ pub fn growth_system(mut targets: Query<&mut Growth>, time: Res<Time>) {
         }
 
         growth.growth_value = growth.max_growth * (growth.timer / growth.max_time); 
+    }
+}
+
+pub fn boundery_growth_limit_system(mut commands: Commands, targets: Query<(Entity, &Transform), With<Growth>>, cameras: Query<(&Transform, &GameCamera), Without<Growth>>) {
+    let mut max_camera_height = 0.0;
+
+    for (transform, _) in cameras.iter() {
+        if transform.translation.y > max_camera_height {
+            max_camera_height = transform.translation.y;
+        }
+    }
+
+    for (entity, transform) in targets.iter() {
+        if transform.translation.x > 100.0 || transform.translation.x < -100.0{
+            commands.entity(entity).despawn();
+        }
+
+        if transform.translation.y < (max_camera_height - 100.0) {
+            commands.entity(entity).despawn();
+        }
     }
 }

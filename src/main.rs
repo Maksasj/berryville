@@ -21,6 +21,9 @@ use branch::*;
 
 mod rotation;
 
+mod game_camera;
+use game_camera::*;
+
 fn main() {
     App::new()
     .add_plugins(DefaultPlugins
@@ -47,7 +50,7 @@ fn main() {
         }))
         .insert_resource(Msaa::Off)
         .add_startup_system(setup)
-        .add_systems((growth_system, seed_system, branch_system, camera_system).chain())
+        .add_systems((growth_system, seed_system, branch_system, boundery_growth_limit_system, camera_system).chain())
         .run();
 }
 
@@ -64,8 +67,7 @@ fn camera_system(targets: Query<&Transform, With<Growth>>, mut cameras: Query<(&
     }
 }
 
-#[derive(Component)]
-struct GameCamera;
+
 
 fn setup(
         mut commands: Commands,
