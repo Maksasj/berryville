@@ -7,7 +7,7 @@ use bevy::{
             Extent3d, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages,
         },
         view::RenderLayers,
-    }, window::PresentMode, sprite::{MaterialMesh2dBundle, Material2d, Mesh2dHandle},
+    }, window::PresentMode,
 };
 
 mod seed;
@@ -83,11 +83,10 @@ fn setup(
     image.resize(size);
 
     let image_handle = images.add(image);
-    let first_pass_layer = RenderLayers::layer(1);
 
     // Circle
-    commands.spawn((SeedBundle::new_from_transform(&mut meshes,&mut materials, Transform::from_translation(Vec3::splat(0.0))), first_pass_layer));
-
+    commands.spawn(SeedBundle::new(&mut meshes,&mut materials, Transform::from_translation(Vec3::splat(0.0))));
+    
     commands.spawn((
         Camera2dBundle {
             camera_2d: Camera2d {
@@ -101,7 +100,7 @@ fn setup(
             },
             ..default()
         },
-        first_pass_layer,
+        RenderLayers::layer(1),
     ));
 
     commands.spawn(SpriteBundle {

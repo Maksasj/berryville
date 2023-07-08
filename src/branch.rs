@@ -1,6 +1,6 @@
 use bevy::{
     prelude::*,
-    render::view::*,
+    render::view::*, sprite::Anchor,
 };
 
 use crate::{
@@ -24,23 +24,28 @@ pub struct BranchBundle {
     
     growth: Growth,
     branch: Branch,
+
+    rendering_layer: RenderLayers,
 }
 
 impl BranchBundle {
-    pub fn new_from_transform(mut meshes: &mut ResMut<Assets<Mesh>>, mut materials: &mut ResMut<Assets<ColorMaterial>>, transform: Transform) -> Self {
+    pub fn new(transform: Transform) -> Self {
         BranchBundle { 
             sprite: SpriteBundle {
                 sprite: Sprite {
                     color: Color::rgb(0.25, 0.25, 0.75),
-                    custom_size: Some(Vec2::new(25.0, 25.0)),
+                    custom_size: Some(Vec2::new(10.0, 25.0)),
+                    anchor: Anchor::BottomCenter,
                     ..default()
                 },
                 transform: transform,
                 ..default()
             },
 
-            growth: Growth::new(15.0),
-            branch: Branch::new()
+            growth: Growth::new(5.0, 1.0),
+            branch: Branch::new(),
+
+            rendering_layer: RenderLayers::layer(1)
         }
     }
 }
@@ -55,7 +60,7 @@ pub fn branch_system(
     for (mut growth, mut transform) in targets.iter_mut() {
         // Still growing
         if growth.timer < growth.max_time {
-            transform.scale.y = 0.05 * growth.timer;
+            transform.scale.y = growth.growth_value;
             continue;
         }
 
@@ -66,12 +71,10 @@ pub fn branch_system(
         
         growth.done = true;
 
-        let first_pass_layer = RenderLayers::layer(1);
-
         // Circle
         let mut new_transform: Transform = transform.clone();
         new_transform.translation.y += 25.0 * transform.scale.y;
 
-        commands.spawn((SeedBundle::new_from_transform(&mut meshes, &mut materials, new_transform), first_pass_layer));
+        commands.spawn(SeedBundle::new(&mut meshes, &mut materials, new_transform));
     }   
 }
