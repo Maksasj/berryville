@@ -8,6 +8,7 @@ use rand::Rng;
 use crate::{
     growth::*, 
     branch::*,
+    stick::*,
     rotation::*,
 };
 
@@ -71,15 +72,27 @@ pub fn bough_system(mut commands: Commands, mut targets: Query<(&mut Growth, &mu
         let mut rng = rand::thread_rng();
  
         let branch_count = rng.gen_range(1..3); // [x0, x1)
-
+        
         for _ in 0..branch_count {
-            let new_angle = rng.gen_range((-0.872665)..(0.872665));
+            let new_angle = rng.gen_range((-0.572665)..(0.572665));
+            let mut new_transform: Transform = transform.clone();
+            
+            new_transform.rotation = Quat::from_rotation_z(rotation.angle + new_angle);
+            new_transform.scale = Vec3::splat(0.0);
+            
+            commands.spawn(BranchBundle::new(new_transform, rotation.angle + new_angle));
+        }
+
+        let stick_count = rng.gen_range(1..5); // [x0, x1)
+
+        for _ in 0..stick_count {
+            let new_angle = rng.gen_range((-3.14159)..(3.14159));
             let mut new_transform: Transform = transform.clone();
 
             new_transform.rotation = Quat::from_rotation_z(rotation.angle + new_angle);
             new_transform.scale = Vec3::splat(0.0);
 
-            commands.spawn(BranchBundle::new(new_transform, rotation.angle + new_angle));
+            commands.spawn(StickBundle::new(new_transform, rotation.angle + new_angle));
         }
     }
 }
