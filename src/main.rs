@@ -47,9 +47,25 @@ fn main() {
         }))
         .insert_resource(Msaa::Off)
         .add_startup_system(setup)
-        .add_systems((growth_system, seed_system, branch_system).chain())
+        .add_systems((growth_system, seed_system, branch_system, camera_system).chain())
         .run();
 }
+
+fn camera_system(targets: Query<&Transform, With<Growth>>, mut cameras: Query<&mut Transform, Without<Growth>>, time: Res<Time>) {
+    let mut max_height = 0.0;
+    for transform in targets.iter() {
+        if transform.translation.y > max_height  {
+            max_height = transform.translation.y;
+        }
+    }
+
+    for mut camera in cameras.iter_mut() {
+        camera.translation.y += (max_height - camera.translation.y) * 0.3 * time.delta_seconds();
+    }
+}
+
+#[derive(Component)]
+struct GameCamera;
 
 fn setup(
         mut commands: Commands,
@@ -103,6 +119,7 @@ fn setup(
             ..default()
         },
         RenderLayers::layer(1),
+        GameCamera{},
     ));
 
     commands.spawn(SpriteBundle {
