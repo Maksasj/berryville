@@ -14,12 +14,16 @@ use crate::{
 
 #[derive(Component)]
 pub struct Bough {
-
+    pub done_with_branches: bool,
+    pub done_with_sticks: bool,
 }
 
 impl Bough {
     pub fn new() -> Self {
-        Bough { }
+        Bough { 
+            done_with_branches: false,
+            done_with_sticks: false,
+        }
     }
 }
 
@@ -54,8 +58,11 @@ impl BoughBundle {
     }
 }
 
-pub fn bough_system(mut commands: Commands, mut targets: Query<(&mut Growth, &mut Transform, &Rotation), With<Bough>> ) {
-    for (mut growth, mut transform, rotation) in targets.iter_mut() {
+pub fn bough_system(mut commands: Commands, mut targets: Query<(&mut Growth, &mut Transform, &Rotation, &mut Bough)>, branches: Query<&Branch>, sticks: Query<&Stick>) {
+    let mut active_branch_count = branches.iter().count();
+    let mut active_stick_count = sticks.iter().count();
+    
+    for (growth, mut transform, rotation, mut bough) in targets.iter_mut() {
         // Still growing
         if growth.timer < growth.max_time {
             transform.scale = Vec3::splat(growth.growth_value);
@@ -63,36 +70,50 @@ pub fn bough_system(mut commands: Commands, mut targets: Query<(&mut Growth, &mu
         }
 
         // Nice we growth up !
-        if growth.done {
+        if bough.done_with_branches && bough.done_with_sticks {
             continue; // We have growth up, last iteration i guess
         }
-        
-        growth.done = true;
 
         let mut rng = rand::thread_rng();
- 
-        let branch_count = rng.gen_range(1..3); // [x0, x1)
         
-        for _ in 0..branch_count {
-            let new_angle = rng.gen_range((-0.572665)..(0.572665));
-            let mut new_transform: Transform = transform.clone();
-            
-            new_transform.rotation = Quat::from_rotation_z(rotation.angle + new_angle);
-            new_transform.scale = Vec3::splat(0.0);
-            
-            commands.spawn(BranchBundle::new(new_transform, rotation.angle + new_angle));
+        if !bough.done_with_branches {
+            let branch_count = rng.gen_range(1..3); // [x0, x1)
+    
+            for _ in 0..branch_count {
+                if active_branch_count > 100 {
+                    continue;
+                }
+    
+                let new_angle = rng.gen_range((-0.572665)..(0.572665));
+                let mut new_transform: Transform = transform.clone();
+                
+                new_transform.rotation = Quat::from_rotation_z(rotation.angle + new_angle);
+                new_transform.scale = Vec3::splat(0.0);
+                
+                commands.spawn(BranchBundle::new(new_transform, rotation.angle + new_angle));
+                bough.done_with_branches = true;
+                active_branch_count += 1;
+            }
         }
 
-        let stick_count = rng.gen_range(1..5); // [x0, x1)
+        if !bough.done_with_sticks {
+            let stick_count = rng.gen_range(1..5); // [x0, x1)
 
-        for _ in 0..stick_count {
-            let new_angle = rng.gen_range((-3.14159)..(3.14159));
-            let mut new_transform: Transform = transform.clone();
+            for s in 0..stick_count {
+                if active_stick_count > 100 {
+                    continue;
+                }
 
-            new_transform.rotation = Quat::from_rotation_z(rotation.angle + new_angle);
-            new_transform.scale = Vec3::splat(0.0);
+                let new_angle = rng.gen_range((-3.14159)..(3.14159));
+                let mut new_transform: Transform = transform.clone();
 
-            commands.spawn(StickBundle::new(new_transform, rotation.angle + new_angle));
+                new_transform.rotation = Quat::from_rotation_z(rotation.angle + new_angle);
+                new_transform.scale = Vec3::splat(0.0);
+
+                commands.spawn(StickBundle::new(new_transform, rotation.angle + new_angle));
+                bough.done_with_sticks = true;
+                active_stick_count += 1;
+            }
         }
     }
 }
