@@ -35,7 +35,7 @@ impl BananaBundle {
     pub fn new(asset_server: &Res<AssetServer>, transform: Transform, angle: f32) -> Self {
         BananaBundle { 
             sprite: SpriteBundle {
-                texture: asset_server.load("banana.png"),
+                texture: asset_server.load("textures/banana.png"),
                 transform: transform,
                 ..default()
             },

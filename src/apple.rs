@@ -35,7 +35,7 @@ impl AppleBundle {
     pub fn new(asset_server: &Res<AssetServer>, transform: Transform, angle: f32) -> Self {
         AppleBundle { 
             sprite: SpriteBundle {
-                texture: asset_server.load("apple.png"),
+                texture: asset_server.load("textures/apple.png"),
                 transform: transform,
                 ..default()
             },

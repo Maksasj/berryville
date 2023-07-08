@@ -35,7 +35,7 @@ impl GrapeBundle {
     pub fn new(asset_server: &Res<AssetServer>, transform: Transform, angle: f32) -> Self {
         GrapeBundle { 
             sprite: SpriteBundle {
-                texture: asset_server.load("grape.png"),
+                texture: asset_server.load("textures/grape.png"),
                 transform: transform,
                 ..default()
             },

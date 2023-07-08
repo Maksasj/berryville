@@ -35,7 +35,7 @@ impl CocosBundle {
     pub fn new(asset_server: &Res<AssetServer>, transform: Transform, angle: f32) -> Self {
         CocosBundle { 
             sprite: SpriteBundle {
-                texture: asset_server.load("cocos.png"),
+                texture: asset_server.load("textures/cocos.png"),
                 transform: transform,
                 ..default()
             },
