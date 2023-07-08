@@ -37,8 +37,8 @@ impl BranchBundle {
         BranchBundle { 
             sprite: SpriteBundle {
                 sprite: Sprite {
-                    color: Color::rgb(0.25, 0.25, 0.75),
-                    custom_size: Some(Vec2::new(10.0, 25.0)),
+                    color: Color::rgb(0.25, 0.75, 0.25),
+                    custom_size: Some(Vec2::new(4.0, 25.0)),
                     anchor: Anchor::BottomCenter,
                     ..default()
                 },
@@ -67,6 +67,7 @@ pub fn branch_system(
         // Still growing
         if growth.timer < growth.max_time {
             transform.scale.y = growth.growth_value;
+            transform.scale.x = growth.timer / growth.max_time;
             continue;
         }
 
@@ -88,6 +89,7 @@ pub fn branch_system(
             new_transform.translation.y += 25.0 * rotation.angle.cos();
 
             new_transform.rotation = Quat::from_rotation_z(rotation.angle + new_angle);
+            new_transform.scale = Vec3::splat(0.0);
 
             commands.spawn(SeedBundle::new(&mut meshes, &mut materials, new_transform, rotation.angle + new_angle));
         }

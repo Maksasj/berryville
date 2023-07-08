@@ -38,7 +38,7 @@ impl SeedBundle {
     pub fn new(meshes: &mut ResMut<Assets<Mesh>>, materials: &mut ResMut<Assets<ColorMaterial>>, transform: Transform, angle: f32) -> Self {
         SeedBundle { 
             mesh: MaterialMesh2dBundle {
-                mesh: meshes.add(shape::Circle::new(10.).into()).into(),
+                mesh: meshes.add(shape::Circle::new(8.).into()).into(),
                 material: materials.add(ColorMaterial::from(Color::PURPLE)),
                 transform: transform,
                 ..default()
@@ -77,6 +77,7 @@ pub fn seed_system(mut commands: Commands, mut targets: Query<(&mut Growth, &mut
             let mut new_transform: Transform = transform.clone();
 
             new_transform.rotation = Quat::from_rotation_z(rotation.angle + new_angle);
+            new_transform.scale = Vec3::splat(0.0);
 
             commands.spawn(BranchBundle::new(new_transform, rotation.angle + new_angle));
         }

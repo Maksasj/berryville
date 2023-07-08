@@ -67,8 +67,6 @@ fn camera_system(targets: Query<&Transform, With<Growth>>, mut cameras: Query<(&
     }
 }
 
-
-
 fn setup(
         mut commands: Commands,
         mut meshes: ResMut<Assets<Mesh>>,
