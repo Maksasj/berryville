@@ -51,7 +51,7 @@ fn main() {
         .run();
 }
 
-fn camera_system(targets: Query<&Transform, With<Growth>>, mut cameras: Query<&mut Transform, Without<Growth>>, time: Res<Time>) {
+fn camera_system(targets: Query<&Transform, With<Growth>>, mut cameras: Query<(&mut Transform, &GameCamera), Without<Growth>>, time: Res<Time>) {
     let mut max_height = 0.0;
     for transform in targets.iter() {
         if transform.translation.y > max_height  {
@@ -59,8 +59,8 @@ fn camera_system(targets: Query<&Transform, With<Growth>>, mut cameras: Query<&m
         }
     }
 
-    for mut camera in cameras.iter_mut() {
-        camera.translation.y += (max_height - camera.translation.y) * 0.3 * time.delta_seconds();
+    for (mut transform, _) in cameras.iter_mut() {
+        transform.translation.y += (max_height - transform.translation.y) * 0.3 * time.delta_seconds();
     }
 }
 
