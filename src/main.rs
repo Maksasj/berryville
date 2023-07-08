@@ -79,6 +79,8 @@ fn main() {
             grape_system,
             banana_system,
             cocos_system,
+
+            score_text_update_system,
             
             boundery_growth_limit_system, 
             camera_system).chain())
@@ -98,11 +100,15 @@ fn camera_system(targets: Query<&Transform, With<Growth>>, mut cameras: Query<(&
     }
 }
 
+#[derive(Component)]
+struct ScoreText;
+
 fn setup(
         mut commands: Commands,
         mut meshes: ResMut<Assets<Mesh>>,
         mut materials: ResMut<Assets<ColorMaterial>>,
         mut images: ResMut<Assets<Image>>,
+        asset_server: Res<AssetServer>
     ) {
 
     let size = Extent3d {
@@ -139,7 +145,7 @@ fn setup(
     commands.spawn((
         Camera2dBundle {
             camera_2d: Camera2d {
-                clear_color: ClearColorConfig::Custom(Color::WHITE),
+                clear_color: ClearColorConfig::Custom(Color::rgb(0.45, 0.45, 0.45)),
                 ..default()
             },
             camera: Camera {
@@ -163,4 +169,40 @@ fn setup(
     });
 
     commands.spawn(Camera2dBundle::default());
+
+    commands.spawn((
+        TextBundle::from_section(
+            "000",
+            TextStyle {
+                font: asset_server.load("fonts/VCR_OSD_MONO_1.001.ttf"),
+                font_size: 75.0,
+                color: Color::WHITE,
+            },
+        ) 
+        .with_text_alignment(TextAlignment::Right)
+        .with_style(Style {
+            position_type: PositionType::Absolute,
+            position: UiRect {
+                top: Val::Px(5.0),
+                right: Val::Px(15.0),
+                ..default()
+            },
+            ..default()
+        }),
+        ScoreText,
+    ));
+}
+
+fn score_text_update_system(mut query: Query<&mut Text, With<ScoreText>>, cameras: Query<(&Transform, &GameCamera), Without<Growth>>) {
+    let mut max_camera_height = 0.0;
+
+    for (transform, _) in cameras.iter() {
+        if transform.translation.y > max_camera_height {
+            max_camera_height = transform.translation.y;
+        }
+    }
+
+    for mut text in query.iter_mut() {
+        text.sections[0].value = format!("{:.0}", max_camera_height);
+    }
 }

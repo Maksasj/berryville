@@ -62,7 +62,7 @@ pub fn bough_system(mut commands: Commands, mut targets: Query<(&mut Growth, &mu
     let mut active_branch_count = branches.iter().count();
     let mut active_stick_count = sticks.iter().count();
     
-    for (growth, mut transform, rotation, mut bough) in targets.iter_mut() {
+    for (mut growth, mut transform, rotation, mut bough) in targets.iter_mut() {
         // Still growing
         if growth.timer < growth.max_time {
             transform.scale = Vec3::splat(growth.growth_value);
@@ -71,6 +71,7 @@ pub fn bough_system(mut commands: Commands, mut targets: Query<(&mut Growth, &mu
 
         // Nice we growth up !
         if bough.done_with_branches && bough.done_with_sticks {
+            growth.done = true;
             continue; // We have growth up, last iteration i guess
         }
 
