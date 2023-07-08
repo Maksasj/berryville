@@ -22,6 +22,9 @@ use branch::*;
 mod bough;
 use bough::*;
 
+mod apple;
+use apple::*;
+
 mod stick;
 use stick::*;
 
@@ -63,6 +66,7 @@ fn main() {
             branch_system, 
             bough_system, 
             stick_system, 
+            apple_system,
             
             boundery_growth_limit_system, 
             camera_system).chain())

@@ -6,6 +6,7 @@ use rand::*;
 
 use crate::{
     growth::*, 
+    apple::*,
     rotation::*, 
 };
 
@@ -57,8 +58,7 @@ impl StickBundle {
 
 pub fn stick_system(
         mut commands: Commands,  
-        mut meshes: ResMut<Assets<Mesh>>,
-        mut materials: ResMut<Assets<ColorMaterial>>,
+        asset_server: Res<AssetServer>,
         mut targets: Query<(&mut Growth, &mut Transform, &Rotation), With<Stick>>
     ) {
         
@@ -76,23 +76,16 @@ pub fn stick_system(
         }
         
         growth.done = true;
-        
-        /*
-        let mut rng = rand::thread_rng();
 
         {
-            let new_angle = rng.gen_range(-0.2..0.2);
-
             let mut new_transform: Transform = transform.clone();
             
-            new_transform.translation.x -= 25.0 * rotation.angle.sin();
-            new_transform.translation.y += 25.0 * rotation.angle.cos();
+            new_transform.translation.x -= 10.0 * rotation.angle.sin();
+            new_transform.translation.y += 10.0 * rotation.angle.cos();
 
-            new_transform.rotation = Quat::from_rotation_z(rotation.angle + new_angle);
             new_transform.scale = Vec3::splat(0.0);
 
-            commands.spawn(BoughBundle::new(&mut meshes, &mut materials, new_transform, rotation.angle + new_angle));
+            commands.spawn(AppleBundle::new(&asset_server, new_transform, 0.0));
         }
-         */
     }   
 }
