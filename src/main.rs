@@ -19,6 +19,8 @@ use growth::*;
 mod branch;
 use branch::*;
 
+mod rotation;
+
 fn main() {
     App::new()
     .add_plugins(DefaultPlugins
@@ -85,7 +87,7 @@ fn setup(
     let image_handle = images.add(image);
 
     // Circle
-    commands.spawn(SeedBundle::new(&mut meshes,&mut materials, Transform::from_translation(Vec3::splat(0.0))));
+    commands.spawn(SeedBundle::new(&mut meshes,&mut materials, Transform::from_translation(Vec3::splat(0.0)), 0.2));
     
     commands.spawn((
         Camera2dBundle {
