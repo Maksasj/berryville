@@ -19,6 +19,9 @@ use growth::*;
 mod branch;
 use branch::*;
 
+mod bough;
+use bough::*;
+
 mod rotation;
 
 mod game_camera;
@@ -50,7 +53,7 @@ fn main() {
         }))
         .insert_resource(Msaa::Off)
         .add_startup_system(setup)
-        .add_systems((growth_system, seed_system, branch_system, boundery_growth_limit_system, camera_system).chain())
+        .add_systems((growth_system, seed_system, branch_system, bough_system, boundery_growth_limit_system, camera_system).chain())
         .run();
 }
 

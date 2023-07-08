@@ -6,8 +6,8 @@ use rand::*;
 
 use crate::{
     growth::*, 
-    seed::*, 
-    rotation::*,
+    bough::*,
+    rotation::*, 
 };
 
 #[derive(Component)]
@@ -91,7 +91,7 @@ pub fn branch_system(
             new_transform.rotation = Quat::from_rotation_z(rotation.angle + new_angle);
             new_transform.scale = Vec3::splat(0.0);
 
-            commands.spawn(SeedBundle::new(&mut meshes, &mut materials, new_transform, rotation.angle + new_angle));
+            commands.spawn(BoughBundle::new(&mut meshes, &mut materials, new_transform, rotation.angle + new_angle));
         }
     }   
 }
