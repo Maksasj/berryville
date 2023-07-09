@@ -102,7 +102,6 @@ fn main() {
             score_text_update_system,
             boundery_growth_limit_system, 
 
-            game_scene_background_sky_update_system,
             game_scene_update_system,
             ).in_set(OnUpdate(AppState::InGame)))
 
@@ -119,7 +118,8 @@ fn main() {
             camera_system, 
             wavy_update_system,
             transparency_update_system,
-            curtain_system
+            curtain_system,
+            game_scene_background_sky_update_system,
         ))
         
         .run();
@@ -425,6 +425,16 @@ fn main_menu_scene_enter_system(
         BackGroundEntity{},
         RenderLayers::layer(1)
     ));
+    commands.spawn((
+        SpriteBundle {
+            texture: asset_server.load("textures/background_sky.png"),
+            transform: Transform::from_translation(Vec3::new(0.0, 360.0, 1.0)),
+            ..default()
+        },
+        BackGroundSky{},
+        BackGroundEntity{},
+        RenderLayers::layer(1)
+    ));
 
     // Circle
     commands.spawn(SeedBundle::new(&mut meshes,&mut materials, Transform::from_translation(Vec3::new(0.0, -40.0, 100.0)), 0.2));
@@ -547,7 +557,7 @@ fn game_scene_background_sky_update_system(
     }
 
     for (background, transform, _) in targets.iter() {
-        if transform.translation.y > (max_camera_height - 120.0) {
+        if transform.translation.y > (max_camera_height - 150.0) {
             continue;
         } 
 
@@ -559,6 +569,7 @@ fn game_scene_background_sky_update_system(
                 ..default()
             },
             BackGroundSky{},
+            BackGroundEntity{},
             RenderLayers::layer(1)
         ));
     }
