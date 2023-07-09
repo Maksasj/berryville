@@ -11,6 +11,7 @@ use bevy::{
 };
 
 mod seed;
+use image::Rgba;
 use seed::*;
 
 mod growth;
@@ -101,9 +102,14 @@ fn main() {
             boundery_growth_limit_system, 
 
             game_scene_background_sky_update_system,
+            game_scene_update_system,
             ).in_set(OnUpdate(AppState::InGame)))
 
-        .add_system(camera_system)
+        .add_systems((
+            camera_system, 
+            wavy_update_system,
+            transparency_update_system
+        ))
         
         .run();
 }
@@ -133,6 +139,9 @@ fn main_menu_scene_update_system(
         buttons: Res<Input<MouseButton>>,
         app_state: Res<State<AppState>>,
         mut app_state_next_state: ResMut<NextState<AppState>>,
+
+        mut transparent: Query<&mut Transparency, With<MainMenuEntity>>, 
+        time: Res<Time>
     ) {
 
     if app_state.0 == AppState::InGame {
@@ -148,28 +157,185 @@ fn main_menu_scene_update_system(
         buttons.just_pressed(MouseButton::Middle) {
         app_state_next_state.set(AppState::InGame);
     }
+
+    for mut transparency in transparent.iter_mut() {
+        if transparency.value < 1.0 {
+            transparency.value += 0.6 * time.delta_seconds()
+        } else {
+            transparency.value = 1.0;
+        }
+    }
 }
+
+fn game_scene_update_system(
+    input: Res<Input<KeyCode>>,
+    buttons: Res<Input<MouseButton>>,
+    app_state: Res<State<AppState>>,
+    mut app_state_next_state: ResMut<NextState<AppState>>,
+
+    mut menu_transparent: Query<(&mut Transparency, &MainMenuEntity), Without<GameEntity>>, 
+    mut game_transparent: Query<(&mut Transparency, &GameEntity), Without<MainMenuEntity>>, 
+    time: Res<Time>
+) {
+
+// if app_state.0 == AppState::InGame {
+//     return;
+// }
+// 
+// if input.just_pressed(KeyCode::Space) {
+//     app_state_next_state.set(AppState::InGame);
+// }
+// 
+// if  buttons.just_pressed(MouseButton::Left) || 
+//     buttons.just_pressed(MouseButton::Right) ||
+//     buttons.just_pressed(MouseButton::Middle) {
+//     app_state_next_state.set(AppState::InGame);
+// }
+
+    for (mut transparency, _) in menu_transparent.iter_mut() {
+        if transparency.value > 0.0 {
+            transparency.value -= 0.6 * time.delta_seconds()
+        } else {
+            transparency.value = 0.0;
+        }
+    }
+
+    for (mut transparency, _) in game_transparent.iter_mut() {
+        if transparency.value < 1.0 {
+            transparency.value += 0.6 * time.delta_seconds()
+        } else {
+            transparency.value = 1.0;
+        }
+    }
+}
+
+#[derive(Component)]
+pub struct Wavy {
+    amplitude: f32,
+    timer: f32,
+    speed: f32,
+}
+
+impl Wavy {
+    pub fn new(amplitude: f32, speed: f32) -> Self {
+        Wavy { 
+            amplitude: amplitude, 
+            timer: 0.0,
+            speed: speed,
+        }
+    }
+}
+
+#[derive(Component)]
+pub struct Transparency {
+    value: f32,
+}
+
+impl Transparency {
+    pub fn new(value: f32) -> Self {
+        Transparency { 
+            value: value
+        }
+    }
+
+    pub fn default() -> Self {
+        Transparency { 
+            value: 1.0
+        }
+    }
+}
+
+#[derive(Component)]
+pub struct MainMenuEntity;
+
+#[derive(Component)]
+pub struct GameEntity;
 
 fn main_menu_scene_enter_system(        
         mut commands: Commands,
         mut meshes: ResMut<Assets<Mesh>>,
-        mut materials: ResMut<Assets<ColorMaterial>>
+        mut materials: ResMut<Assets<ColorMaterial>>,
+        asset_server: Res<AssetServer>
     ) {
 
+    commands.spawn((
+        SpriteBundle {
+            sprite: Sprite {
+                color: Color::rgba(1.0, 1.0, 1.0, 0.0),
+                ..default()
+            },
+            texture: asset_server.load("textures/background_logo.png"),
+            transform: Transform {
+                translation: Vec3::new(0.0, 130.0, 10.0),
+                scale: Vec3::splat(5.0),
+                ..default()
+            },
+            ..default()
+        },
+        Transparency::new(0.0),
+        MainMenuEntity{}
+    ));
+
+    commands.spawn((
+        SpriteBundle {
+            sprite: Sprite {
+                color: Color::rgba(1.0, 1.0, 1.0, 0.0),
+                ..default()
+            },
+            texture: asset_server.load("textures/press_any_button_to_start.png"),
+            transform: Transform {
+                translation: Vec3::new(0.0, -150.0, 10.0),
+                scale: Vec3::splat(5.0),
+                ..default()
+            },
+            ..default()
+        },
+        Wavy::new(8.0, 5.0),
+        Transparency::new(0.0),
+        MainMenuEntity{}
+    ));
+
     // Circle
-    commands.spawn(SeedBundle::new(&mut meshes,&mut materials, Transform::from_translation(Vec3::new(0.0, 0.0, 100.0)), 0.2));
+    commands.spawn(SeedBundle::new(&mut meshes,&mut materials, Transform::from_translation(Vec3::new(0.0, -40.0, 100.0)), 0.2));
+}
+
+pub fn transparency_update_system(
+        mut sprite_targets: Query<(&Transparency, &mut Sprite), Without<Text>>,
+        mut text_targets: Query<(&Transparency, &mut Text), Without<Sprite>>
+    
+    ) {
+        
+    for (transparency, mut sprite) in sprite_targets.iter_mut() {
+        sprite.color = Color::rgba(sprite.color.r(), sprite.color.g(), sprite.color.b(), transparency.value); 
+    }
+
+    for (transparency, mut text) in text_targets.iter_mut() {
+        for section in text.sections.iter_mut() {
+            section.style.color = Color::rgba(section.style.color.r(), section.style.color.g(), section.style.color.b(), transparency.value); 
+        }
+    }
+}
+
+pub fn wavy_update_system(mut targets: Query<(&mut Wavy, &mut Transform)>, time: Res<Time>) {
+    for (mut wavy, mut transform) in targets.iter_mut() {
+        wavy.timer += time.delta_seconds();
+        transform.translation.y -= ((wavy.timer * wavy.speed).sin() / 600.0) * wavy.amplitude;
+    }
 }
 
 fn games_scene_on_enter(mut commands: Commands, asset_server: Res<AssetServer>) {
+    let mut text_bundle = TextBundle::from_section(
+        "0",
+        TextStyle {
+            font: asset_server.load("fonts/VCR_OSD_MONO_1.001.ttf"),
+            font_size: 85.0,
+            color: Color::rgba(0.0, 0.0, 0.0, 0.0),
+        },
+    );
+    text_bundle.transform = Transform::from_translation(Vec3::new(0.0, 0.0, 0.0));
+
     commands.spawn((
-        TextBundle::from_section(
-            "0",
-            TextStyle {
-                font: asset_server.load("fonts/VCR_OSD_MONO_1.001.ttf"),
-                font_size: 75.0,
-                color: Color::WHITE,
-            },
-        ) 
+        text_bundle
         .with_text_alignment(TextAlignment::Right)
         .with_style(Style {
             position_type: PositionType::Absolute,
@@ -180,7 +346,9 @@ fn games_scene_on_enter(mut commands: Commands, asset_server: Res<AssetServer>) 
             },
             ..default()
         }),
-        ScoreText,
+        ScoreText{},
+        GameEntity{},
+        Transparency::new(0.0)
     ));
 }
 
