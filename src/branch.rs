@@ -33,7 +33,9 @@ pub struct BranchBundle {
 }
 
 impl BranchBundle {
-    pub fn new(transform: Transform, angle: f32) -> Self {
+    pub fn new(mut transform: Transform, angle: f32) -> Self {
+        transform.scale = Vec3::splat(0.0);
+
         BranchBundle { 
             sprite: SpriteBundle {
                 sprite: Sprite {

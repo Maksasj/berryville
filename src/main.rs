@@ -67,7 +67,24 @@ fn main() {
             ..default()
         }))
         .insert_resource(Msaa::Off)
+        .add_state::<AppState>()
         .add_startup_system(setup)
+
+        .add_systems((
+            main_menu_scene_enter_system,
+            ).in_schedule(OnEnter(AppState::MainMenu)))
+        // .add_systems((
+        //     ).in_schedule(OnExit(AppState::MainMenu)))
+        .add_systems((
+            main_menu_scene_update_system,
+            ).in_set(OnUpdate(AppState::MainMenu)))
+
+        .add_systems((
+            games_scene_on_enter,
+            ).in_schedule(OnEnter(AppState::InGame)))
+        .add_systems((
+            game_scene_exit_system,
+            ).in_schedule(OnExit(AppState::InGame)))
         .add_systems((
             growth_system, 
             
@@ -83,8 +100,18 @@ fn main() {
             score_text_update_system,
             
             boundery_growth_limit_system, 
-            camera_system).chain())
+            ).in_set(OnUpdate(AppState::InGame)))
+
+        .add_system(camera_system)
+        
         .run();
+}
+
+#[derive(Debug, Clone, Copy, Default, Eq, PartialEq, Hash, States)]
+pub enum AppState {
+    #[default]
+    MainMenu,
+    InGame,
 }
 
 fn camera_system(targets: Query<&Transform, With<Growth>>, mut cameras: Query<(&mut Transform, &GameCamera), Without<Growth>>, time: Res<Time>) {
@@ -100,13 +127,73 @@ fn camera_system(targets: Query<&Transform, With<Growth>>, mut cameras: Query<(&
     }
 }
 
+fn main_menu_scene_update_system(
+        input: Res<Input<KeyCode>>,
+        buttons: Res<Input<MouseButton>>,
+        app_state: Res<State<AppState>>,
+        mut app_state_next_state: ResMut<NextState<AppState>>,
+    ) {
+
+    if app_state.0 == AppState::InGame {
+        return;
+    }
+
+    if input.just_pressed(KeyCode::Space) {
+        app_state_next_state.set(AppState::InGame);
+    }
+
+    if  buttons.just_pressed(MouseButton::Left) || 
+        buttons.just_pressed(MouseButton::Right) ||
+        buttons.just_pressed(MouseButton::Middle) {
+        app_state_next_state.set(AppState::InGame);
+    }
+}
+
+fn main_menu_scene_enter_system(        
+        mut commands: Commands,
+        mut meshes: ResMut<Assets<Mesh>>,
+        mut materials: ResMut<Assets<ColorMaterial>>
+    ) {
+
+    // Circle
+    commands.spawn(SeedBundle::new(&mut meshes,&mut materials, Transform::from_translation(Vec3::splat(0.0)), 0.2));
+}
+
+fn games_scene_on_enter(mut commands: Commands, asset_server: Res<AssetServer>) {
+    commands.spawn((
+        TextBundle::from_section(
+            "0",
+            TextStyle {
+                font: asset_server.load("fonts/VCR_OSD_MONO_1.001.ttf"),
+                font_size: 75.0,
+                color: Color::WHITE,
+            },
+        ) 
+        .with_text_alignment(TextAlignment::Right)
+        .with_style(Style {
+            position_type: PositionType::Absolute,
+            position: UiRect {
+                top: Val::Px(5.0),
+                right: Val::Px(15.0),
+                ..default()
+            },
+            ..default()
+        }),
+        ScoreText,
+    ));
+}
+
+fn game_scene_exit_system(mut commands: Commands, targets: Query<Entity, With<Growth>>) {
+    for entity in targets.iter() {
+        commands.entity(entity).despawn();
+    }
+}
+
 #[derive(Component)]
 struct ScoreText;
 
 fn setup(
         mut commands: Commands,
-        mut meshes: ResMut<Assets<Mesh>>,
-        mut materials: ResMut<Assets<ColorMaterial>>,
         mut images: ResMut<Assets<Image>>,
         asset_server: Res<AssetServer>
     ) {
@@ -139,9 +226,6 @@ fn setup(
 
     let image_handle = images.add(image);
 
-    // Circle
-    commands.spawn(SeedBundle::new(&mut meshes,&mut materials, Transform::from_translation(Vec3::splat(0.0)), 0.2));
-    
     commands.spawn((
         Camera2dBundle {
             camera_2d: Camera2d {
@@ -169,28 +253,6 @@ fn setup(
     });
 
     commands.spawn(Camera2dBundle::default());
-
-    commands.spawn((
-        TextBundle::from_section(
-            "000",
-            TextStyle {
-                font: asset_server.load("fonts/VCR_OSD_MONO_1.001.ttf"),
-                font_size: 75.0,
-                color: Color::WHITE,
-            },
-        ) 
-        .with_text_alignment(TextAlignment::Right)
-        .with_style(Style {
-            position_type: PositionType::Absolute,
-            position: UiRect {
-                top: Val::Px(5.0),
-                right: Val::Px(15.0),
-                ..default()
-            },
-            ..default()
-        }),
-        ScoreText,
-    ));
 }
 
 fn score_text_update_system(mut query: Query<&mut Text, With<ScoreText>>, cameras: Query<(&Transform, &GameCamera), Without<Growth>>) {

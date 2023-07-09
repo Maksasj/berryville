@@ -49,11 +49,11 @@ pub fn boundery_growth_limit_system(mut commands: Commands, targets: Query<(Enti
     }
 
     for (entity, transform) in targets.iter() {
-        if transform.translation.x > 100.0 || transform.translation.x < -100.0{
+        if transform.translation.x > 80.0 || transform.translation.x < -80.0{
             commands.entity(entity).despawn();
         }
 
-        if transform.translation.y < (max_camera_height - 100.0) {
+        if transform.translation.y < (max_camera_height - 80.0) {
             commands.entity(entity).despawn();
         }
     }

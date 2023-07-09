@@ -33,7 +33,9 @@ pub struct StickBundle {
 }
 
 impl StickBundle {
-    pub fn new(transform: Transform, angle: f32) -> Self {
+    pub fn new(mut transform: Transform, angle: f32) -> Self {
+        transform.scale = Vec3::splat(0.0);
+
         StickBundle { 
             sprite: SpriteBundle {
                 sprite: Sprite {

@@ -32,7 +32,9 @@ pub struct BananaBundle {
 }
 
 impl BananaBundle {
-    pub fn new(asset_server: &Res<AssetServer>, transform: Transform, angle: f32) -> Self {
+    pub fn new(asset_server: &Res<AssetServer>,mut transform: Transform, angle: f32) -> Self {
+        transform.scale = Vec3::splat(0.0);
+
         BananaBundle { 
             sprite: SpriteBundle {
                 texture: asset_server.load("textures/banana.png"),

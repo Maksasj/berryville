@@ -40,7 +40,9 @@ pub struct BoughBundle {
 }
 
 impl BoughBundle {
-    pub fn new(meshes: &mut ResMut<Assets<Mesh>>, materials: &mut ResMut<Assets<ColorMaterial>>, transform: Transform, angle: f32) -> Self {
+    pub fn new(meshes: &mut ResMut<Assets<Mesh>>, materials: &mut ResMut<Assets<ColorMaterial>>, mut transform: Transform, angle: f32) -> Self {
+        transform.scale = Vec3::splat(0.0);
+
         BoughBundle { 
             mesh: MaterialMesh2dBundle {
                 mesh: meshes.add(shape::Circle::new(5.).into()).into(),
