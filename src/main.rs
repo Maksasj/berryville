@@ -1,3 +1,5 @@
+#![windows_subsystem = "windows"]
+
 use bevy::{
     core_pipeline::clear_color::ClearColorConfig,
     prelude::*,
@@ -502,7 +504,10 @@ fn games_scene_on_enter(mut commands: Commands, asset_server: Res<AssetServer>) 
 fn repeat_scene_exit_system(
         mut commands: Commands, 
         growing_things: Query<Entity, With<Growth>>,
-        backgrounds: Query<Entity, With<BackGroundEntity>>
+        backgrounds: Query<Entity, With<BackGroundEntity>>,
+        mut cameras: Query<(&mut Transform, &GameCamera), Without<Growth>>
+
+        
     ) {
     
     for entity in backgrounds.iter() {
@@ -511,6 +516,10 @@ fn repeat_scene_exit_system(
 
     for entity in growing_things.iter() {
         commands.entity(entity).despawn();
+    }
+
+    for (mut transform, _) in cameras.iter_mut() {
+        transform.translation.y = 0.0;
     }
 }
 
