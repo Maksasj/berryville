@@ -300,7 +300,6 @@ fn main_menu_scene_update_system(
 
 fn game_scene_update_system(
         input: Res<Input<KeyCode>>,
-        buttons: Res<Input<MouseButton>>,
         app_state: Res<State<AppState>>,
         mut app_state_next_state: ResMut<NextState<AppState>>,
 
