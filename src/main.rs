@@ -11,7 +11,6 @@ use bevy::{
 };
 
 mod seed;
-use image::Rgba;
 use seed::*;
 
 mod growth;
@@ -45,27 +44,27 @@ use game_camera::*;
 
 fn main() {
     App::new()
-    .add_plugins(DefaultPlugins
-        .set(
-        ImagePlugin::default_nearest(),
-        ).set(WindowPlugin {
-            primary_window: Some(Window {
-                title: "Berryville".into(),
-                resolution: (800.0, 600.0).into(),
-                present_mode: PresentMode::AutoVsync,
-                fit_canvas_to_parent: false,
-                canvas: Some("#game".to_string()),
-                resizable: false,
-                prevent_default_event_handling: false,
-                resize_constraints: WindowResizeConstraints{
-                    min_width: 800.0,
-                    min_height: 600.0,
-                    max_width: 800.0,
-                    max_height: 600.0,
-                },
+        .add_plugins(DefaultPlugins
+            .set(
+            ImagePlugin::default_nearest(),
+            ).set(WindowPlugin {
+                primary_window: Some(Window {
+                    title: "Berryville".into(),
+                    resolution: (800.0, 600.0).into(),
+                    present_mode: PresentMode::AutoVsync,
+                    fit_canvas_to_parent: false,
+                    canvas: Some("#game".to_string()),
+                    resizable: false,
+                    prevent_default_event_handling: false,
+                    resize_constraints: WindowResizeConstraints{
+                        min_width: 800.0,
+                        min_height: 600.0,
+                        max_width: 800.0,
+                        max_height: 600.0,
+                    },
+                    ..default()
+                }),
                 ..default()
-            }),
-            ..default()
         }))
         .insert_resource(Msaa::Off)
         .add_state::<AppState>()
@@ -83,9 +82,9 @@ fn main() {
         .add_systems((
             games_scene_on_enter,
             ).in_schedule(OnEnter(AppState::InGame)))
-        .add_systems((
-            game_scene_exit_system,
-            ).in_schedule(OnExit(AppState::InGame)))
+        // .add_systems((
+        //     game_scene_exit_system,
+        //     ).in_schedule(OnExit(AppState::InGame)))
         .add_systems((
             growth_system, 
             
@@ -106,9 +105,19 @@ fn main() {
             ).in_set(OnUpdate(AppState::InGame)))
 
         .add_systems((
+            restart_scene_on_enter_system,
+            ).in_schedule(OnEnter(AppState::Restart)))
+        .add_systems((
+            repeat_scene_exit_system,
+            ).in_schedule(OnExit(AppState::Restart)))
+        // .add_systems((
+        // ).in_set(OnUpdate(AppState::Restart)))
+        
+        .add_systems((
             camera_system, 
             wavy_update_system,
-            transparency_update_system
+            transparency_update_system,
+            curtain_system
         ))
         
         .run();
@@ -119,6 +128,119 @@ pub enum AppState {
     #[default]
     MainMenu,
     InGame,
+    Restart,
+}
+
+#[derive(PartialEq)]
+pub enum Direction {
+    Left,
+    Right,
+}
+
+#[derive(Component)]
+pub struct RestartCurtain {
+    progress: f32,
+    direction: Direction,
+    forward: bool,
+    wait: f32
+}
+
+impl RestartCurtain {
+    pub fn new(direction: Direction) -> Self {
+        RestartCurtain {
+            progress: 0.0,
+            direction: direction,
+            forward: false,
+            wait: 0.0,
+        }
+    } 
+}
+
+fn restart_scene_on_enter_system(
+        mut commands: Commands,
+        asset_server: Res<AssetServer>
+    ) {
+
+    commands.spawn((
+        SpriteBundle {
+            texture: asset_server.load("textures/right_curtain.png"),
+            transform: Transform {
+                translation: Vec3::new(-450.0, 0.0, 12.0),
+                scale: Vec3::splat(5.0),
+                ..default()
+            },
+            ..default()
+        },
+        RestartEntity{},
+        RestartCurtain::new(Direction::Right),
+    ));
+
+    commands.spawn((
+        SpriteBundle {
+            texture: asset_server.load("textures/left_curtain.png"),
+            transform: Transform {
+                translation: Vec3::new(450.0, 0.0, 12.0),
+                scale: Vec3::splat(5.0),
+                ..default()
+            },
+            ..default()
+        },
+        RestartEntity{},
+        RestartCurtain::new(Direction::Left),
+    ));
+}
+
+fn curtain_system(        
+        app_state: Res<State<AppState>>,
+        mut app_state_next_state: ResMut<NextState<AppState>>,
+        mut targets: Query<(&mut Transform, &mut RestartCurtain)>, 
+        time: Res<Time>
+    ) {
+
+    for (mut transform, mut curtain) in targets.iter_mut() {
+        if curtain.forward == false {
+            curtain.progress += time.delta_seconds();
+            
+            if curtain.progress > 1.0 {
+                curtain.progress = 1.0;
+                curtain.forward = true;
+            }
+
+            if curtain.direction == Direction::Left {
+                transform.translation.x = (1.0 - curtain.progress) * 450.0;
+            } else {
+                transform.translation.x = (1.0 - curtain.progress) * -450.0;
+            }
+
+            continue;
+        }
+        
+        curtain.wait += time.delta_seconds();
+        if curtain.wait < 2.0 {
+            curtain.progress = 0.0;
+            
+            if app_state.0 != AppState::MainMenu {
+                app_state_next_state.set(AppState::MainMenu);
+            }
+
+            continue;
+        }
+        curtain.wait = 2.0;
+
+        if curtain.forward == true {
+            curtain.progress += time.delta_seconds();
+            
+            if curtain.progress > 1.0 {
+                curtain.progress = 1.0;
+            }
+
+            if curtain.direction == Direction::Left {
+                transform.translation.x = (curtain.progress) * 450.0;
+            } else {
+                transform.translation.x = (curtain.progress) * -450.0;
+            }
+        }
+    }
 }
 
 fn camera_system(targets: Query<&Transform, With<Growth>>, mut cameras: Query<(&mut Transform, &GameCamera), Without<Growth>>, time: Res<Time>) {
@@ -140,7 +262,8 @@ fn main_menu_scene_update_system(
         app_state: Res<State<AppState>>,
         mut app_state_next_state: ResMut<NextState<AppState>>,
 
-        mut transparent: Query<&mut Transparency, With<MainMenuEntity>>, 
+        mut menu_transparent: Query<(&mut Transparency, &MainMenuEntity), Without<GameEntity>>, 
+        mut game_transparent: Query<(&mut Transparency, &GameEntity), Without<MainMenuEntity>>,
         time: Res<Time>
     ) {
 
@@ -158,39 +281,39 @@ fn main_menu_scene_update_system(
         app_state_next_state.set(AppState::InGame);
     }
 
-    for mut transparency in transparent.iter_mut() {
+    for (mut transparency, _) in menu_transparent.iter_mut() {
         if transparency.value < 1.0 {
             transparency.value += 0.6 * time.delta_seconds()
         } else {
             transparency.value = 1.0;
         }
     }
+
+    for (mut transparency, _) in game_transparent.iter_mut() {
+        if transparency.value > 0.0 {
+            transparency.value -= 0.6 * time.delta_seconds()
+        } else {
+            transparency.value = 0.0;
+        }
+    }
 }
 
 fn game_scene_update_system(
-    input: Res<Input<KeyCode>>,
-    buttons: Res<Input<MouseButton>>,
-    app_state: Res<State<AppState>>,
-    mut app_state_next_state: ResMut<NextState<AppState>>,
+        input: Res<Input<KeyCode>>,
+        buttons: Res<Input<MouseButton>>,
+        app_state: Res<State<AppState>>,
+        mut app_state_next_state: ResMut<NextState<AppState>>,
 
-    mut menu_transparent: Query<(&mut Transparency, &MainMenuEntity), Without<GameEntity>>, 
-    mut game_transparent: Query<(&mut Transparency, &GameEntity), Without<MainMenuEntity>>, 
-    time: Res<Time>
-) {
+        mut menu_transparent: Query<(&mut Transparency, &MainMenuEntity), Without<GameEntity>>, 
+        mut game_transparent: Query<(&mut Transparency, &GameEntity), Without<MainMenuEntity>>, 
+        time: Res<Time>
+    ) {
 
-// if app_state.0 == AppState::InGame {
-//     return;
-// }
-// 
-// if input.just_pressed(KeyCode::Space) {
-//     app_state_next_state.set(AppState::InGame);
-// }
-// 
-// if  buttons.just_pressed(MouseButton::Left) || 
-//     buttons.just_pressed(MouseButton::Right) ||
-//     buttons.just_pressed(MouseButton::Middle) {
-//     app_state_next_state.set(AppState::InGame);
-// }
+    if input.just_pressed(KeyCode::R) {
+        if app_state.0 != AppState::Restart {
+            app_state_next_state.set(AppState::Restart);
+        }
+    }
 
     for (mut transparency, _) in menu_transparent.iter_mut() {
         if transparency.value > 0.0 {
@@ -251,6 +374,9 @@ pub struct MainMenuEntity;
 #[derive(Component)]
 pub struct GameEntity;
 
+#[derive(Component)]
+pub struct RestartEntity;
+
 fn main_menu_scene_enter_system(        
         mut commands: Commands,
         mut meshes: ResMut<Assets<Mesh>>,
@@ -260,39 +386,43 @@ fn main_menu_scene_enter_system(
 
     commands.spawn((
         SpriteBundle {
-            sprite: Sprite {
-                color: Color::rgba(1.0, 1.0, 1.0, 0.0),
-                ..default()
-            },
-            texture: asset_server.load("textures/background_logo.png"),
-            transform: Transform {
-                translation: Vec3::new(0.0, 130.0, 10.0),
-                scale: Vec3::splat(5.0),
-                ..default()
-            },
+            texture: asset_server.load("textures/background_grass.png"),
+            transform: Transform::from_translation(Vec3::new(0.0, 0.0, 1.0)),
             ..default()
         },
-        Transparency::new(0.0),
-        MainMenuEntity{}
+        BackGroundEntity{},
+        RenderLayers::layer(1)
     ));
 
     commands.spawn((
         SpriteBundle {
-            sprite: Sprite {
-                color: Color::rgba(1.0, 1.0, 1.0, 0.0),
-                ..default()
-            },
-            texture: asset_server.load("textures/press_any_button_to_start.png"),
-            transform: Transform {
-                translation: Vec3::new(0.0, -150.0, 10.0),
-                scale: Vec3::splat(5.0),
-                ..default()
-            },
+            texture: asset_server.load("textures/background_sky.png"),
+            transform: Transform::from_translation(Vec3::new(0.0, 0.0, 1.0)),
             ..default()
         },
-        Wavy::new(8.0, 5.0),
-        Transparency::new(0.0),
-        MainMenuEntity{}
+        BackGroundSky{},
+        BackGroundEntity{},
+        RenderLayers::layer(1)
+    ));
+    commands.spawn((
+        SpriteBundle {
+            texture: asset_server.load("textures/background_sky.png"),
+            transform: Transform::from_translation(Vec3::new(0.0, 120.0, 1.0)),
+            ..default()
+        },
+        BackGroundSky{},
+        BackGroundEntity{},
+        RenderLayers::layer(1)
+    ));
+    commands.spawn((
+        SpriteBundle {
+            texture: asset_server.load("textures/background_sky.png"),
+            transform: Transform::from_translation(Vec3::new(0.0, 240.0, 1.0)),
+            ..default()
+        },
+        BackGroundSky{},
+        BackGroundEntity{},
+        RenderLayers::layer(1)
     ));
 
     // Circle
@@ -302,7 +432,6 @@ fn main_menu_scene_enter_system(
 pub fn transparency_update_system(
         mut sprite_targets: Query<(&Transparency, &mut Sprite), Without<Text>>,
         mut text_targets: Query<(&Transparency, &mut Text), Without<Sprite>>
-    
     ) {
         
     for (transparency, mut sprite) in sprite_targets.iter_mut() {
@@ -350,10 +479,38 @@ fn games_scene_on_enter(mut commands: Commands, asset_server: Res<AssetServer>) 
         GameEntity{},
         Transparency::new(0.0)
     ));
+
+    commands.spawn((
+        SpriteBundle {
+            sprite: Sprite {
+                color: Color::rgba(1.0, 1.0, 1.0, 0.0),
+                ..default()
+            },
+            texture: asset_server.load("textures/repeat_button.png"),
+            transform: Transform {
+                translation: Vec3::new(-350.0, 250.0, 11.0),
+                scale: Vec3::splat(5.0),
+                ..default()
+            },
+            ..default()
+        },
+        Transparency::new(0.0),
+        GameEntity{},
+    ));
+
 }
 
-fn game_scene_exit_system(mut commands: Commands, targets: Query<Entity, With<Growth>>) {
-    for entity in targets.iter() {
+fn repeat_scene_exit_system(
+        mut commands: Commands, 
+        growing_things: Query<Entity, With<Growth>>,
+        backgrounds: Query<Entity, With<BackGroundEntity>>
+    ) {
+    
+    for entity in backgrounds.iter() {
+        commands.entity(entity).despawn();
+    }
+
+    for entity in growing_things.iter() {
         commands.entity(entity).despawn();
     }
 }
@@ -390,7 +547,7 @@ fn game_scene_background_sky_update_system(
         commands.spawn((
             SpriteBundle {
                 texture: asset_server.load("textures/background_sky.png"),
-                transform: Transform::from_translation(Vec3::new(0.0, max_background_height + 120.0, 0.0)),
+                transform: Transform::from_translation(Vec3::new(0.0, max_background_height + 120.0, 1.0)),
                 ..default()
             },
             BackGroundSky{},
@@ -402,6 +559,9 @@ fn game_scene_background_sky_update_system(
 
 #[derive(Component)]
 struct BackGroundSky;
+
+#[derive(Component)]
+struct BackGroundEntity;
 
 #[derive(Component)]
 struct ScoreText;
@@ -442,39 +602,39 @@ fn setup(
 
     commands.spawn((
         SpriteBundle {
-            texture: asset_server.load("textures/background_grass.png"),
-            transform: Transform::from_translation(Vec3::new(0.0, 0.0, 0.0)),
+            sprite: Sprite {
+                color: Color::rgba(1.0, 1.0, 1.0, 0.0),
+                ..default()
+            },
+            texture: asset_server.load("textures/background_logo.png"),
+            transform: Transform {
+                translation: Vec3::new(0.0, 130.0, 10.0),
+                scale: Vec3::splat(5.0),
+                ..default()
+            },
             ..default()
         },
-        RenderLayers::layer(1)
+        Transparency::new(0.0),
+        MainMenuEntity{}
     ));
 
     commands.spawn((
         SpriteBundle {
-            texture: asset_server.load("textures/background_sky.png"),
-            transform: Transform::from_translation(Vec3::new(0.0, 0.0, 0.0)),
+            sprite: Sprite {
+                color: Color::rgba(1.0, 1.0, 1.0, 0.0),
+                ..default()
+            },
+            texture: asset_server.load("textures/press_any_button_to_start.png"),
+            transform: Transform {
+                translation: Vec3::new(0.0, -150.0, 10.0),
+                scale: Vec3::splat(5.0),
+                ..default()
+            },
             ..default()
         },
-        BackGroundSky{},
-        RenderLayers::layer(1)
-    ));
-    commands.spawn((
-        SpriteBundle {
-            texture: asset_server.load("textures/background_sky.png"),
-            transform: Transform::from_translation(Vec3::new(0.0, 120.0, 0.0)),
-            ..default()
-        },
-        BackGroundSky{},
-        RenderLayers::layer(1)
-    ));
-    commands.spawn((
-        SpriteBundle {
-            texture: asset_server.load("textures/background_sky.png"),
-            transform: Transform::from_translation(Vec3::new(0.0, 240.0, 0.0)),
-            ..default()
-        },
-        BackGroundSky{},
-        RenderLayers::layer(1)
+        Wavy::new(8.0, 5.0),
+        Transparency::new(0.0),
+        MainMenuEntity{}
     ));
 
     commands.spawn((
@@ -503,7 +663,7 @@ fn setup(
         ..default()
     });
 
-    commands.spawn(Camera2dBundle::default());
+    commands.spawn((Camera2dBundle::default(),));
 }
 
 fn score_text_update_system(mut query: Query<&mut Text, With<ScoreText>>, cameras: Query<(&Transform, &GameCamera), Without<Growth>>) {
