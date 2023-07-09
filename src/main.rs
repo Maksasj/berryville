@@ -98,8 +98,9 @@ fn main() {
             cocos_system,
 
             score_text_update_system,
-            
             boundery_growth_limit_system, 
+
+            game_scene_background_sky_update_system,
             ).in_set(OnUpdate(AppState::InGame)))
 
         .add_system(camera_system)
@@ -156,7 +157,7 @@ fn main_menu_scene_enter_system(
     ) {
 
     // Circle
-    commands.spawn(SeedBundle::new(&mut meshes,&mut materials, Transform::from_translation(Vec3::splat(0.0)), 0.2));
+    commands.spawn(SeedBundle::new(&mut meshes,&mut materials, Transform::from_translation(Vec3::new(0.0, 0.0, 100.0)), 0.2));
 }
 
 fn games_scene_on_enter(mut commands: Commands, asset_server: Res<AssetServer>) {
@@ -188,6 +189,51 @@ fn game_scene_exit_system(mut commands: Commands, targets: Query<Entity, With<Gr
         commands.entity(entity).despawn();
     }
 }
+
+fn game_scene_background_sky_update_system(
+        mut commands: Commands, 
+        targets: Query<(Entity, &Transform, &BackGroundSky)>,
+        cameras: Query<(&Transform, &GameCamera), Without<Growth>>,
+        asset_server: Res<AssetServer>
+    ) {
+    
+    let mut max_camera_height = 0.0;
+
+    for (transform, _) in cameras.iter() {
+        if transform.translation.y > max_camera_height {
+            max_camera_height = transform.translation.y;
+        }
+    }
+
+    let mut max_background_height = 0.0;
+
+    for (_, transform, _) in targets.iter() {
+        if transform.translation.y > max_background_height {
+            max_background_height = transform.translation.y;
+        }
+    }
+
+    for (background, transform, _) in targets.iter() {
+        if transform.translation.y > (max_camera_height - 120.0) {
+            continue;
+        } 
+
+        commands.entity(background).despawn();
+        commands.spawn((
+            SpriteBundle {
+                texture: asset_server.load("textures/background_sky.png"),
+                transform: Transform::from_translation(Vec3::new(0.0, max_background_height + 120.0, 0.0)),
+                ..default()
+            },
+            BackGroundSky{},
+            RenderLayers::layer(1)
+        ));
+    }
+}
+
+
+#[derive(Component)]
+struct BackGroundSky;
 
 #[derive(Component)]
 struct ScoreText;
@@ -225,6 +271,43 @@ fn setup(
     image.resize(size);
 
     let image_handle = images.add(image);
+
+    commands.spawn((
+        SpriteBundle {
+            texture: asset_server.load("textures/background_grass.png"),
+            transform: Transform::from_translation(Vec3::new(0.0, 0.0, 0.0)),
+            ..default()
+        },
+        RenderLayers::layer(1)
+    ));
+
+    commands.spawn((
+        SpriteBundle {
+            texture: asset_server.load("textures/background_sky.png"),
+            transform: Transform::from_translation(Vec3::new(0.0, 0.0, 0.0)),
+            ..default()
+        },
+        BackGroundSky{},
+        RenderLayers::layer(1)
+    ));
+    commands.spawn((
+        SpriteBundle {
+            texture: asset_server.load("textures/background_sky.png"),
+            transform: Transform::from_translation(Vec3::new(0.0, 120.0, 0.0)),
+            ..default()
+        },
+        BackGroundSky{},
+        RenderLayers::layer(1)
+    ));
+    commands.spawn((
+        SpriteBundle {
+            texture: asset_server.load("textures/background_sky.png"),
+            transform: Transform::from_translation(Vec3::new(0.0, 240.0, 0.0)),
+            ..default()
+        },
+        BackGroundSky{},
+        RenderLayers::layer(1)
+    ));
 
     commands.spawn((
         Camera2dBundle {
