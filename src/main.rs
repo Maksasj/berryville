@@ -45,84 +45,92 @@ mod game_camera;
 use game_camera::*;
 
 fn main() {
-    App::new()
-        .add_plugins(DefaultPlugins
-            .set(
-            ImagePlugin::default_nearest(),
-            ).set(WindowPlugin {
-                primary_window: Some(Window {
-                    title: "Berryville".into(),
-                    resolution: (800.0, 600.0).into(),
-                    present_mode: PresentMode::AutoVsync,
-                    fit_canvas_to_parent: false,
-                    canvas: Some("#game".to_string()),
-                    resizable: false,
-                    prevent_default_event_handling: false,
-                    resize_constraints: WindowResizeConstraints{
-                        min_width: 800.0,
-                        min_height: 600.0,
-                        max_width: 800.0,
-                        max_height: 600.0,
-                    },
-                    ..default()
-                }),
+    let mut app = App::new();
+    
+    #[allow(unused_mut)]
+    let mut default_plugin = DefaultPlugins.set(
+        ImagePlugin::default_nearest(),
+        ).set(WindowPlugin {
+            primary_window: Some(Window {
+                title: "Berryville".into(),
+                resolution: (800.0, 600.0).into(),
+                present_mode: PresentMode::AutoVsync,
+                fit_canvas_to_parent: false,
+                canvas: Some("#game".to_string()),
+                resizable: false,
+                prevent_default_event_handling: false,
+                resize_constraints: WindowResizeConstraints{
+                    min_width: 800.0,
+                    min_height: 600.0,
+                    max_width: 800.0,
+                    max_height: 600.0,
+                },
                 ..default()
-        }))
-        .insert_resource(Msaa::Off)
-        .add_state::<AppState>()
-        .add_startup_system(setup)
+            }),
+            ..default()
+    });
 
-        .add_systems((
-            main_menu_scene_enter_system,
-            ).in_schedule(OnEnter(AppState::MainMenu)))
-        // .add_systems((
-        //     ).in_schedule(OnExit(AppState::MainMenu)))
-        .add_systems((
-            main_menu_scene_update_system,
-            ).in_set(OnUpdate(AppState::MainMenu)))
+    #[cfg(target = "wasm32-unknown-unknown")]
+    {
+        default_plugin = default_plugin.set(AssetPlugin{watch_for_changes: true, asset_folder: "berryville/assets".into(), ..Default::default()});
+    }
 
-        .add_systems((
-            games_scene_on_enter,
-            ).in_schedule(OnEnter(AppState::InGame)))
-        // .add_systems((
-        //     game_scene_exit_system,
-        //     ).in_schedule(OnExit(AppState::InGame)))
-        .add_systems((
-            growth_system, 
-            
-            seed_system, 
-            branch_system, 
-            bough_system, 
-            stick_system, 
-            apple_system,
-            grape_system,
-            banana_system,
-            cocos_system,
+    app.add_plugins(default_plugin);
+    app.insert_resource(Msaa::Off);
+    app.add_state::<AppState>();
+    app.add_startup_system(setup);
 
-            score_text_update_system,
-            boundery_growth_limit_system, 
+    app.add_systems((
+        main_menu_scene_enter_system,
+        ).in_schedule(OnEnter(AppState::MainMenu)));
+    // .add_systems((
+    //     ).in_schedule(OnExit(AppState::MainMenu)))
+    app.add_systems((
+        main_menu_scene_update_system,
+        ).in_set(OnUpdate(AppState::MainMenu)));
 
-            game_scene_update_system,
-            ).in_set(OnUpdate(AppState::InGame)))
-
-        .add_systems((
-            restart_scene_on_enter_system,
-            ).in_schedule(OnEnter(AppState::Restart)))
-        .add_systems((
-            repeat_scene_exit_system,
-            ).in_schedule(OnExit(AppState::Restart)))
-        // .add_systems((
-        // ).in_set(OnUpdate(AppState::Restart)))
+    app.add_systems((
+        games_scene_on_enter,
+        ).in_schedule(OnEnter(AppState::InGame)));
+    // .add_systems((
+    //     game_scene_exit_system,
+    //     ).in_schedule(OnExit(AppState::InGame)))
+    app.add_systems((
+        growth_system, 
         
-        .add_systems((
-            camera_system, 
-            wavy_update_system,
-            transparency_update_system,
-            curtain_system,
-            game_scene_background_sky_update_system,
-        ))
-        
-        .run();
+        seed_system, 
+        branch_system, 
+        bough_system, 
+        stick_system, 
+        apple_system,
+        grape_system,
+        banana_system,
+        cocos_system,
+
+        score_text_update_system,
+        boundery_growth_limit_system, 
+
+        game_scene_update_system,
+        ).in_set(OnUpdate(AppState::InGame)));
+
+    app.add_systems((
+        restart_scene_on_enter_system,
+        ).in_schedule(OnEnter(AppState::Restart)));
+    app.add_systems((
+        repeat_scene_exit_system,
+        ).in_schedule(OnExit(AppState::Restart)));
+    // .add_systems((
+    // ).in_set(OnUpdate(AppState::Restart)))
+    
+    app.add_systems((
+        camera_system, 
+        wavy_update_system,
+        transparency_update_system,
+        curtain_system,
+        game_scene_background_sky_update_system,
+    ));
+    
+    app.run();
 }
 
 #[derive(Debug, Clone, Copy, Default, Eq, PartialEq, Hash, States)]
