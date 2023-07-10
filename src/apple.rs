@@ -37,7 +37,7 @@ impl AppleBundle {
 
         AppleBundle { 
             sprite: SpriteBundle {
-                texture: asset_server.load("textures/apple.png"),
+                texture: asset_server.load("https://maksasj.github.io/berryville/assets/textures/apple.png"),
                 transform: transform,
                 ..default()
             },

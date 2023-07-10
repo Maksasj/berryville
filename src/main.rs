@@ -12,6 +12,8 @@ use bevy::{
     }, window::PresentMode,
 };
 
+use bevy_web_asset::WebAssetPlugin;
+
 mod seed;
 use seed::*;
 
@@ -74,7 +76,7 @@ fn main() {
     {
         default_plugin = default_plugin.set(AssetPlugin{watch_for_changes: true, asset_folder: "berryville/assets".into(), ..Default::default()});
     }
-
+    app.add_plugin(WebAssetPlugin::default());
     app.add_plugins(default_plugin);
     app.insert_resource(Msaa::Off);
     app.add_state::<AppState>();
@@ -173,7 +175,7 @@ fn restart_scene_on_enter_system(
 
     commands.spawn((
         SpriteBundle {
-            texture: asset_server.load("textures/right_curtain.png"),
+            texture: asset_server.load("https://maksasj.github.io/berryville/assets/textures/right_curtain.png"),
             transform: Transform {
                 translation: Vec3::new(-450.0, 0.0, 12.0),
                 scale: Vec3::splat(5.0),
@@ -187,7 +189,7 @@ fn restart_scene_on_enter_system(
 
     commands.spawn((
         SpriteBundle {
-            texture: asset_server.load("textures/left_curtain.png"),
+            texture: asset_server.load("https://maksasj.github.io/berryville/assets/textures/left_curtain.png"),
             transform: Transform {
                 translation: Vec3::new(450.0, 0.0, 12.0),
                 scale: Vec3::splat(5.0),
@@ -395,8 +397,8 @@ fn main_menu_scene_enter_system(
 
     commands.spawn((
         SpriteBundle {
-            texture: asset_server.load("textures/background_grass.png"),
-            transform: Transform::from_translation(Vec3::new(0.0, 0.0, 1.0)),
+            texture: asset_server.load("https://maksasj.github.io/berryville/assets/textures/background_grass.png"),
+            transform: Transform::from_translation(Vec3::new(0.0, 0.0, 2.0)),
             ..default()
         },
         BackGroundEntity{},
@@ -405,7 +407,7 @@ fn main_menu_scene_enter_system(
 
     commands.spawn((
         SpriteBundle {
-            texture: asset_server.load("textures/background_sky.png"),
+            texture: asset_server.load("https://maksasj.github.io/berryville/assets/textures/background_sky.png"),
             transform: Transform::from_translation(Vec3::new(0.0, 0.0, 1.0)),
             ..default()
         },
@@ -415,7 +417,7 @@ fn main_menu_scene_enter_system(
     ));
     commands.spawn((
         SpriteBundle {
-            texture: asset_server.load("textures/background_sky.png"),
+            texture: asset_server.load("https://maksasj.github.io/berryville/assets/textures/background_sky.png"),
             transform: Transform::from_translation(Vec3::new(0.0, 120.0, 1.0)),
             ..default()
         },
@@ -425,7 +427,7 @@ fn main_menu_scene_enter_system(
     ));
     commands.spawn((
         SpriteBundle {
-            texture: asset_server.load("textures/background_sky.png"),
+            texture: asset_server.load("https://maksasj.github.io/berryville/assets/textures/background_sky.png"),
             transform: Transform::from_translation(Vec3::new(0.0, 240.0, 1.0)),
             ..default()
         },
@@ -435,7 +437,7 @@ fn main_menu_scene_enter_system(
     ));
     commands.spawn((
         SpriteBundle {
-            texture: asset_server.load("textures/background_sky.png"),
+            texture: asset_server.load("https://maksasj.github.io/berryville/assets/textures/background_sky.png"),
             transform: Transform::from_translation(Vec3::new(0.0, 360.0, 1.0)),
             ..default()
         },
@@ -505,7 +507,7 @@ fn games_scene_on_enter(mut commands: Commands, asset_server: Res<AssetServer>) 
                 color: Color::rgba(1.0, 1.0, 1.0, 0.0),
                 ..default()
             },
-            texture: asset_server.load("textures/repeat_button.png"),
+            texture: asset_server.load("https://maksasj.github.io/berryville/assets/textures/repeat_button.png"),
             transform: Transform {
                 translation: Vec3::new(-350.0, 250.0, 11.0),
                 scale: Vec3::splat(5.0),
@@ -572,7 +574,7 @@ fn game_scene_background_sky_update_system(
         commands.entity(background).despawn();
         commands.spawn((
             SpriteBundle {
-                texture: asset_server.load("textures/background_sky.png"),
+                texture: asset_server.load("https://maksasj.github.io/berryville/assets/textures/background_sky.png"),
                 transform: Transform::from_translation(Vec3::new(0.0, max_background_height + 120.0, 1.0)),
                 ..default()
             },
@@ -633,7 +635,7 @@ fn setup(
                 color: Color::rgba(1.0, 1.0, 1.0, 0.0),
                 ..default()
             },
-            texture: asset_server.load("textures/background_logo.png"),
+            texture: asset_server.load("https://maksasj.github.io/berryville/assets/textures/background_logo.png"),
             transform: Transform {
                 translation: Vec3::new(0.0, 130.0, 10.0),
                 scale: Vec3::splat(5.0),
@@ -651,7 +653,7 @@ fn setup(
                 color: Color::rgba(1.0, 1.0, 1.0, 0.0),
                 ..default()
             },
-            texture: asset_server.load("textures/press_any_button_to_start.png"),
+            texture: asset_server.load("https://maksasj.github.io/berryville/assets/textures/press_any_button_to_start.png"),
             transform: Transform {
                 translation: Vec3::new(0.0, -150.0, 10.0),
                 scale: Vec3::splat(5.0),

@@ -37,7 +37,7 @@ impl BananaBundle {
 
         BananaBundle { 
             sprite: SpriteBundle {
-                texture: asset_server.load("textures/banana.png"),
+                texture: asset_server.load("https://maksasj.github.io/berryville/assets/textures/banana.png"),
                 transform: transform,
                 ..default()
             },

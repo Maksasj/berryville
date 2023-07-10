@@ -37,7 +37,7 @@ impl CocosBundle {
 
         CocosBundle { 
             sprite: SpriteBundle {
-                texture: asset_server.load("textures/cocos.png"),
+                texture: asset_server.load("https://maksasj.github.io/berryville/assets/textures/cocos.png"),
                 transform: transform,
                 ..default()
             },

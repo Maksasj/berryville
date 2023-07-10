@@ -37,7 +37,7 @@ impl GrapeBundle {
 
         GrapeBundle { 
             sprite: SpriteBundle {
-                texture: asset_server.load("textures/grape.png"),
+                texture: asset_server.load("https://maksasj.github.io/berryville/assets/textures/grape.png"),
                 transform: transform,
                 ..default()
             },
