@@ -477,7 +477,7 @@ fn games_scene_on_enter(mut commands: Commands, asset_server: Res<AssetServer>) 
     let mut text_bundle = TextBundle::from_section(
         "0",
         TextStyle {
-            font: asset_server.load("fonts/VCR_OSD_MONO_1.001.ttf"),
+            font: asset_server.load("https://maksasj.github.io/berryville/assets/fonts/VCR_OSD_MONO_1.001.ttf"),
             font_size: 85.0,
             color: Color::rgba(0.0, 0.0, 0.0, 0.0),
         },
