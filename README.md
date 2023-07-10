@@ -9,8 +9,9 @@
 > And yet, yet again, berryville is a not a new javascript framework !
 
 ### Links:
-1. Game page on Itch.io [maksasj.itch.io/berryville](https://maksasj.itch.io/berryville) <br>
-2. Source code avaiable at [github.com/Maksasj/berryville](https://github.com/Maksasj/berryville)
+1. Web version available at [maksasj.github.io/berryville](https://maksasj.github.io/berryville/) <br>
+2. Game page on Itch.io [maksasj.itch.io/berryville](https://maksasj.itch.io/berryville) <br>
+3. Source code avaiable at [github.com/Maksasj/berryville](https://github.com/Maksasj/berryville)
 
 Cool looking widgets: 
 <img src="https://img.shields.io/github/license/Maksasj/berryville" alt="license">
@@ -20,13 +21,25 @@ Cool looking widgets:
 
 ## Building
 ### Requirements
-...
+Initially project have been build with these versions
+1. cargo 1.70.0
+2. rustc 1.70.0
+3. wasm-bindgen 0.2.86 (required only for web build)
 
 ### Windows build
-...
+There is two main building options first one is building `exe` file, and second one is a `web` version.
+As for `exe` version, you simply can do default or use preexisting `build.bat` and `make.bat` script.
+```bash
+cargo build --release 
+```
+Cargo will automatically, download and build dependencies, such as bevy.
 
 ### Web build
-...
+As for the web version, you will need to have `wasm-bindgen` cli utility(see this guide [link](https://rustwasm.github.io/wasm-bindgen/reference/cli.html)). After installing `wasm-bindgen`, you can try to run 
+```bash
+cargo build --release --target wasm32-unknown-unknown
+```
+this command will compile game into a wasm file. Then you can follow this guide [link](https://bevy-cheatbook.github.io/platforms/wasm.html). For development simplicity there is also `web-build` script, that compiles game into a wasm file, and runs `wasm-bindgen` automatically.
 
 ## License
 Berryville is free, open source game. All code in this repository is licensed under
