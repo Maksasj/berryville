@@ -482,7 +482,7 @@ fn games_scene_on_enter(mut commands: Commands, asset_server: Res<AssetServer>) 
             color: Color::rgba(0.0, 0.0, 0.0, 0.0),
         },
     );
-    text_bundle.transform = Transform::from_translation(Vec3::new(0.0, 0.0, 0.0));
+    text_bundle.transform = Transform::from_translation(Vec3::new(0.0, 0.0, 2.0));
 
     commands.spawn((
         text_bundle
