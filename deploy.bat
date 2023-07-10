@@ -13,7 +13,6 @@ echo !ESC![93mBuilding exe build!ESC![0m
 
 echo !ESC![92mDeploying exe build!ESC![0m
     xcopy .\target\release\berryville.exe .\dist\exe\
-    xcopy /i/s/e/f .\assets\ .\dist\exe\assets
 
 echo !ESC![91mDeleting previous web build!ESC![0m
     rmdir /s/q dist\web
